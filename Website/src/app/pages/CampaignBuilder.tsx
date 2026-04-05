@@ -134,8 +134,12 @@ export function CampaignBuilder() {
                   </div>
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={formData.fundraisingTarget}
-                    onChange={(e) => setFormData({ ...formData, fundraisingTarget: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, "");
+                      setFormData({ ...formData, fundraisingTarget: val });
+                    }}
                     placeholder="Or enter a custom amount"
                     className="w-full px-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />

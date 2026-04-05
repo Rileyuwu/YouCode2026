@@ -431,8 +431,8 @@ export function DonationPortal() {
                           )}
                         </div>
                         {formData.enableMonthly && (
-                          <p className="text-xs text-center mb-3" style={{ color: formData.embedTheme.primaryColor }}>
-                            ✓ Monthly giving available
+                          <p className="flex items-center justify-center gap-1 text-xs text-center mb-3" style={{ color: formData.embedTheme.primaryColor }}>
+                            <Check className="w-3 h-3" /> Monthly giving available
                           </p>
                         )}
                         <button
@@ -532,10 +532,10 @@ export function DonationPortal() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-xs text-center mb-3 transition-colors duration-300"
+                      className="flex items-center justify-center gap-1 text-xs text-center mb-3 transition-colors duration-300"
                       style={{ color: formData.embedPayment ? formData.embedTheme.primaryColor : undefined }}
                     >
-                      ✓ Monthly giving available
+                      <Check className="w-3 h-3" /> Monthly giving available
                     </motion.div>
                   )}
                   <motion.button
