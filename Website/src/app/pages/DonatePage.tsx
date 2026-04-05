@@ -19,8 +19,18 @@ export function DonatePage() {
   const displayAmounts = campaign.suggestedAmounts.length > 0 ? campaign.suggestedAmounts : ["25", "50", "100", "250"];
   const accentColor = campaign.accentColor || "#2f6b52";
 
-  const handleDonate = () => {
+  const handleDonate = async () => {
     if (!selectedAmount && !customAmount) return;
+    try {
+      await fetch("/api/donate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: parseFloat(donateAmount),
+          monthly: isMonthly,
+        }),
+      });
+    } catch {}
     setDonated(true);
   };
 
@@ -203,10 +213,23 @@ export function DonatePage() {
         </AnimatePresence>
 
         {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground py-4">
-          Powered by{" "}
-          <span style={{ color: accentColor }} className="font-medium">Connext</span>
-        </p>
+        <div className="text-center text-xs text-muted-foreground py-4 space-y-1">
+          {campaign.website && (
+            <a
+              href={campaign.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block font-medium hover:underline"
+              style={{ color: accentColor }}
+            >
+              {campaign.website.replace(/^https?:\/\//, "")}
+            </a>
+          )}
+          <p>
+            Powered by{" "}
+            <span style={{ color: accentColor }} className="font-medium">Connext</span>
+          </p>
+        </div>
       </div>
     </div>
   );

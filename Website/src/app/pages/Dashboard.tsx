@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { DollarSign, Users, Clock, TrendingUp, Calendar, ArrowUpRight, Settings, ShieldCheck, Eye, Bell, Menu, X, Search, Download } from "lucide-react";
@@ -22,12 +22,26 @@ const mockDonors = [
   { name: "Fatima Al-Rashid", amount: 75, type: "Monthly", date: "Mar 15, 2026", status: "Active" },
 ];
 
+interface LiveDonation {
+  id: string;
+  amount: number;
+  monthly: boolean;
+  timestamp: string;
+}
+
+const BASE_RAISED = 6500;
+const BASE_MONTHLY = 6;
+const BASE_SUPPORTERS = 75;
+
 export function Dashboard() {
   const { campaign } = useCampaign();
   const [showPagePreview, setShowPagePreview] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [donorSearch, setDonorSearch] = useState("");
+  const [liveDonations, setLiveDonations] = useState<LiveDonation[]>([]);
+  const [toast, setToast] = useState<{ amount: number; monthly: boolean } | null>(null);
+  const prevCountRef = useRef(0);
   const [settingsData, setSettingsData] = useState({
     orgName: campaign.orgName || "",
     contactEmail: "",
@@ -37,30 +51,63 @@ export function Dashboard() {
 
   const donationUrl = `${window.location.origin}/donate/${campaign.slug || "your-campaign"}`;
 
+  // Poll live donations
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const res = await fetch("/api/donations");
+        const data: LiveDonation[] = await res.json();
+        setLiveDonations((prev) => {
+          if (data.length > prevCountRef.current) {
+            const newest = data[data.length - 1];
+            setToast({ amount: newest.amount, monthly: newest.monthly });
+            setTimeout(() => setToast(null), 3500);
+          }
+          prevCountRef.current = data.length;
+          return data;
+        });
+      } catch {}
+    };
+    poll();
+    const interval = setInterval(poll, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const liveTotal = liveDonations.reduce((sum, d) => sum + d.amount, 0);
+  const totalRaised = BASE_RAISED + liveTotal;
+  const goalNum = parseFloat((campaign.goal || "10000").replace(/[^0-9.]/g, "")) || 10000;
+  const pct = Math.min(Math.round((totalRaised / goalNum) * 100), 100);
+  const monthlyCount = BASE_MONTHLY + liveDonations.filter((d) => d.monthly).length;
+  const totalSupporters = BASE_SUPPORTERS + liveDonations.length;
+
   const campaignData = [
     { date: "Mar 1", amount: 450 },
     { date: "Mar 8", amount: 1200 },
     { date: "Mar 15", amount: 2100 },
     { date: "Mar 22", amount: 3800 },
     { date: "Mar 29", amount: 5200 },
-    { date: "Apr 5", amount: 6500 },
+    { date: "Apr 5", amount: totalRaised },
   ];
 
-  const recentActivity = [
-    { id: 1, type: "donation", donor: "Sarah M.", amount: 100, time: "2 hours ago", recurring: true },
-    { id: 2, type: "volunteer", name: "UBC Social Impact Society", action: "signed up", time: "5 hours ago" },
-    { id: 3, type: "donation", donor: "Anonymous", amount: 50, time: "1 day ago", recurring: false },
-    { id: 4, type: "donation", donor: "Michael C.", amount: 250, time: "1 day ago", recurring: true },
-    { id: 5, type: "volunteer", name: "Community Volunteers", action: "completed 8 hours", time: "2 days ago" },
+  const allDonors = [
+    ...[...liveDonations].reverse().map((d) => ({
+      name: "Anonymous",
+      amount: d.amount,
+      type: d.monthly ? "Monthly" : "One-time",
+      date: new Date(d.timestamp).toLocaleDateString("en-CA", { month: "short", day: "numeric", year: "numeric" }),
+      status: d.monthly ? "Active" : "Completed",
+      isLive: true,
+    })),
+    ...mockDonors.map((d) => ({ ...d, isLive: false })),
   ];
 
-  const filteredDonors = mockDonors.filter((d) =>
+  const filteredDonors = allDonors.filter((d) =>
     d.name.toLowerCase().includes(donorSearch.toLowerCase())
   );
 
   const handleExportCSV = () => {
     const header = "Name,Amount,Type,Date,Status\n";
-    const rows = mockDonors
+    const rows = allDonors
       .map((d) => `"${d.name}",${d.amount},"${d.type}","${d.date}","${d.status}"`)
       .join("\n");
     const blob = new Blob([header + rows], { type: "text/csv" });
@@ -222,12 +269,24 @@ export function Dashboard() {
               <span className="text-sm text-muted-foreground">Money Raised</span>
               <DollarSign className="w-5 h-5 text-primary" />
             </div>
-            <div className="text-3xl text-foreground mb-1">$6,500</div>
+            <motion.div
+              key={totalRaised}
+              initial={{ scale: 1.05, color: "#2f6b52" }}
+              animate={{ scale: 1, color: "var(--foreground)" }}
+              transition={{ duration: 0.4 }}
+              className="text-3xl mb-1"
+            >
+              ${totalRaised.toLocaleString()}
+            </motion.div>
             <div className="text-sm text-muted-foreground">
-              <span className="text-primary">65%</span> of {campaign.goal ? "$" + campaign.goal : "$10,000"} goal
+              <span className="text-primary">{pct}%</span> of {campaign.goal ? "$" + Number(campaign.goal).toLocaleString() : "$10,000"} goal
             </div>
             <div className="mt-3 w-full bg-muted rounded-full h-2">
-              <div className="bg-primary h-2 rounded-full" style={{ width: "65%" }} />
+              <motion.div
+                className="bg-primary h-2 rounded-full"
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+              />
             </div>
           </div>
 
@@ -236,10 +295,12 @@ export function Dashboard() {
               <span className="text-sm text-muted-foreground">Monthly Donors</span>
               <TrendingUp className="w-5 h-5 text-primary" />
             </div>
-            <div className="text-3xl text-foreground mb-1">24</div>
+            <motion.div key={monthlyCount} initial={{ scale: 1.08 }} animate={{ scale: 1 }} className="text-3xl text-foreground mb-1">
+              {monthlyCount}
+            </motion.div>
             <div className="flex items-center gap-1 text-sm text-primary">
               <ArrowUpRight className="w-4 h-4" />
-              <span>+8 this week</span>
+              <span>recurring supporters</span>
             </div>
           </div>
 
@@ -249,9 +310,7 @@ export function Dashboard() {
               <Clock className="w-5 h-5 text-primary" />
             </div>
             <div className="text-3xl text-foreground mb-1">142</div>
-            <div className="text-sm text-muted-foreground">
-              From 12 volunteers
-            </div>
+            <div className="text-sm text-muted-foreground">From 12 volunteers</div>
           </div>
 
           <div className="bg-card border border-border rounded-lg p-6">
@@ -259,9 +318,12 @@ export function Dashboard() {
               <span className="text-sm text-muted-foreground">Total Supporters</span>
               <Users className="w-5 h-5 text-primary" />
             </div>
-            <div className="text-3xl text-foreground mb-1">87</div>
+            <motion.div key={totalSupporters} initial={{ scale: 1.08 }} animate={{ scale: 1 }} className="text-3xl text-foreground mb-1">
+              {totalSupporters}
+            </motion.div>
             <div className="text-sm text-muted-foreground">
-              52 one-time, 24 monthly, 11 volunteers
+              {liveDonations.length > 0 && <span className="text-primary">+{liveDonations.length} live · </span>}
+              {BASE_SUPPORTERS} existing
             </div>
           </div>
         </div>
@@ -323,44 +385,59 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Activity */}
+        {/* Live Donations Feed */}
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
-          <h3 className="text-xl text-foreground mb-4">Recent Activity</h3>
-          <div className="space-y-3">
-            {recentActivity.map((activity) => (
-              <div key={activity.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10 text-primary">
-                    {activity.type === "donation" ? <DollarSign className="w-5 h-5" /> : <Users className="w-5 h-5" />}
-                  </div>
-                  <div>
-                    {activity.type === "donation" ? (
-                      <>
-                        <div className="text-foreground">
-                          <span className="font-medium">{activity.donor}</span> donated{" "}
-                          <span className="font-medium">${activity.amount}</span>
-                          {activity.recurring && (
-                            <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded">Monthly</span>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground">{activity.time}</div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-foreground">
-                          <span className="font-medium">{activity.name}</span> {activity.action}
-                        </div>
-                        <div className="text-sm text-muted-foreground">{activity.time}</div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center gap-3 mb-4">
+            <h3 className="text-xl text-foreground">Live Donations</h3>
+            <span className="flex items-center gap-1.5 px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              </span>
+              LIVE
+            </span>
           </div>
-          <button className="w-full mt-4 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors">
-            View All Activity
-          </button>
+
+          <AnimatePresence initial={false}>
+            {liveDonations.length === 0 ? (
+              <motion.p
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-sm text-muted-foreground py-4 text-center"
+              >
+                Waiting for donations — share your QR code to get started
+              </motion.p>
+            ) : (
+              <div className="space-y-2">
+                {[...liveDonations].reverse().map((d) => (
+                  <motion.div
+                    key={d.id}
+                    initial={{ opacity: 0, y: -12, backgroundColor: "color-mix(in srgb, var(--primary) 15%, transparent)" }}
+                    animate={{ opacity: 1, y: 0, backgroundColor: "transparent" }}
+                    transition={{ duration: 0.4 }}
+                    className="flex items-center justify-between px-4 py-3 border border-border rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <DollarSign className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <span className="text-foreground text-sm">Anonymous donated </span>
+                        <span className="text-primary font-medium">${d.amount}</span>
+                        {d.monthly && (
+                          <span className="ml-2 px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded">Monthly</span>
+                        )}
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(d.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* All Donors Table */}
@@ -400,8 +477,11 @@ export function Dashboard() {
               </thead>
               <tbody>
                 {filteredDonors.map((donor, i) => (
-                  <tr key={i} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                    <td className="py-3 px-2 text-foreground">{donor.name}</td>
+                  <tr key={i} className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${donor.isLive ? "bg-primary/5" : ""}`}>
+                    <td className="py-3 px-2 text-foreground flex items-center gap-2">
+                      {donor.name}
+                      {donor.isLive && <span className="px-1.5 py-0.5 bg-primary text-primary-foreground text-xs rounded">NEW</span>}
+                    </td>
                     <td className="py-3 px-2 text-foreground">${donor.amount}</td>
                     <td className="py-3 px-2">
                       <span className={`px-2 py-0.5 rounded text-xs ${donor.type === "Monthly" ? "bg-primary/10 text-primary" : "bg-muted text-foreground"}`}>
@@ -452,6 +532,29 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* New donation toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-4 bg-card border border-primary/40 rounded-xl shadow-xl"
+          >
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <DollarSign className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <div className="text-sm text-foreground">New donation received!</div>
+              <div className="text-base text-primary font-medium">
+                ${toast.amount}{toast.monthly ? "/month" : ""}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* View Page Modal */}
       <AnimatePresence>

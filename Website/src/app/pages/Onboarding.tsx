@@ -106,7 +106,7 @@ export function Onboarding() {
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl sm:text-3xl text-foreground mb-2">
-                  Tell us about your organization
+                  Tell us about your organizationpi
                 </h2>
                 <p className="text-muted-foreground">
                   Help us understand who you are and what you do.

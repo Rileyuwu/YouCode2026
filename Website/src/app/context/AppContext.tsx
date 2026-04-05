@@ -14,6 +14,7 @@ export interface CampaignData {
   enableOneTime: boolean;
   enableMonthly: boolean;
   suggestedAmounts: string[];
+  website: string;
   launched: boolean;
 }
 
@@ -31,6 +32,7 @@ const DEFAULTS: CampaignData = {
   enableOneTime: true,
   enableMonthly: true,
   suggestedAmounts: ["25", "50", "100", "250"],
+  website: "",
   launched: false,
 };
 
