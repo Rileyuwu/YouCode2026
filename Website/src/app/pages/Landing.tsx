@@ -79,7 +79,6 @@ export function Landing() {
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 350, damping: 20 }}
-                style={{ transitionDelay: `${i * 0.06}s` }}
               >
                 <Link
                   to={to}

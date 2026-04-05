@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Heart, Home, Calendar, Users, Target, Eye } from "lucide-react";
+import { Heart, Home, Calendar, Users, Target, Eye, Globe, Code2 } from "lucide-react";
 import logo from "../../assets/623260c091783b7a7f316dbc6399aa584ae1e3a2.png";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
@@ -17,6 +17,16 @@ export function CampaignBuilder() {
     endDate: "",
     enableMonthly: true,
     campaignMessage: "",
+    campaignWebsite: "",
+    embedPayment: false,
+    embedTheme: {
+      primaryColor: "#6366f1",
+      backgroundColor: "#ffffff",
+      textColor: "#111827",
+      buttonText: "Donate Now",
+      borderRadius: "8",
+      fontFamily: "inherit",
+    },
   });
 
   const [showPreview, setShowPreview] = useState(false);
@@ -215,6 +225,204 @@ export function CampaignBuilder() {
               </div>
             </div>
 
+            {/* Website & Embed */}
+            <div className="bg-card border border-border rounded-lg p-6">
+              <h3 className="text-xl text-foreground mb-4 flex items-center gap-2">
+                <Globe className="w-5 h-5" />
+                Website & Payment Embed
+              </h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-foreground mb-2">
+                    Campaign Website
+                  </label>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="url"
+                      value={formData.campaignWebsite}
+                      onChange={(e) => setFormData({ ...formData, campaignWebsite: e.target.value })}
+                      placeholder="https://yourorganization.org/campaign"
+                      className="w-full pl-10 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Link to your existing campaign or organization page.
+                  </p>
+                </div>
+
+                <div className="border border-border rounded-lg overflow-hidden">
+                  <label className="flex items-start gap-3 cursor-pointer p-4">
+                    <input
+                      type="checkbox"
+                      checked={formData.embedPayment}
+                      onChange={(e) => setFormData({ ...formData, embedPayment: e.target.checked })}
+                      className="mt-1 w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
+                    />
+                    <div>
+                      <div className="text-foreground flex items-center gap-2">
+                        <Code2 className="w-4 h-4" />
+                        Embed Payment on Your Website
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-0.5">
+                        Get a donation widget you can drop into any webpage — no redirect needed.
+                      </div>
+                    </div>
+                  </label>
+
+                  {formData.embedPayment && (
+                    <div className="border-t border-border bg-muted/30 p-4 space-y-5">
+                      {/* Color pickers */}
+                      <div>
+                        <p className="text-sm text-foreground mb-3">Widget Theme</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          {[
+                            { key: "primaryColor", label: "Button Color" },
+                            { key: "backgroundColor", label: "Background" },
+                            { key: "textColor", label: "Text Color" },
+                          ].map(({ key, label }) => (
+                            <div key={key} className="flex items-center gap-3">
+                              <div className="relative">
+                                <input
+                                  type="color"
+                                  value={formData.embedTheme[key as keyof typeof formData.embedTheme]}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      embedTheme: { ...formData.embedTheme, [key]: e.target.value },
+                                    })
+                                  }
+                                  className="w-10 h-10 rounded-lg border border-border cursor-pointer bg-transparent p-0.5"
+                                />
+                              </div>
+                              <div>
+                                <div className="text-xs text-muted-foreground">{label}</div>
+                                <div className="text-xs font-mono text-foreground">
+                                  {formData.embedTheme[key as keyof typeof formData.embedTheme]}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Style options */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm text-foreground mb-1">Button Text</label>
+                          <input
+                            type="text"
+                            value={formData.embedTheme.buttonText}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                embedTheme: { ...formData.embedTheme, buttonText: e.target.value },
+                              })
+                            }
+                            placeholder="Donate Now"
+                            className="w-full px-3 py-2 text-sm bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-foreground mb-1">Corner Radius</label>
+                          <select
+                            value={formData.embedTheme.borderRadius}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                embedTheme: { ...formData.embedTheme, borderRadius: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 text-sm bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                          >
+                            <option value="0">Sharp (0px)</option>
+                            <option value="4">Subtle (4px)</option>
+                            <option value="8">Rounded (8px)</option>
+                            <option value="12">More Rounded (12px)</option>
+                            <option value="9999">Pill</option>
+                          </select>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block text-sm text-foreground mb-1">Font</label>
+                          <select
+                            value={formData.embedTheme.fontFamily}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                embedTheme: { ...formData.embedTheme, fontFamily: e.target.value },
+                              })
+                            }
+                            className="w-full px-3 py-2 text-sm bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                          >
+                            <option value="inherit">Match your website</option>
+                            <option value="Inter, sans-serif">Inter</option>
+                            <option value="Georgia, serif">Georgia</option>
+                            <option value="'Courier New', monospace">Courier New</option>
+                            <option value="system-ui, sans-serif">System UI</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Live preview */}
+                      <div>
+                        <p className="text-sm text-foreground mb-2">Preview</p>
+                        <div
+                          className="rounded-lg p-5 border border-border"
+                          style={{
+                            backgroundColor: formData.embedTheme.backgroundColor,
+                            fontFamily: formData.embedTheme.fontFamily,
+                            color: formData.embedTheme.textColor,
+                          }}
+                        >
+                          <p className="text-sm font-medium mb-1">
+                            {formData.title || "Your Campaign"}
+                          </p>
+                          <p className="text-xs mb-3 opacity-70">
+                            {formData.description
+                              ? formData.description.slice(0, 80) + (formData.description.length > 80 ? "…" : "")
+                              : "Support our cause today."}
+                          </p>
+                          <div className="flex gap-2 mb-3">
+                            {["$10", "$25", "$50", "$100"].map((amt) => (
+                              <span
+                                key={amt}
+                                className="text-xs px-2 py-1 border"
+                                style={{
+                                  borderColor: formData.embedTheme.primaryColor,
+                                  color: formData.embedTheme.primaryColor,
+                                  borderRadius: `${formData.embedTheme.borderRadius}px`,
+                                }}
+                              >
+                                {amt}
+                              </span>
+                            ))}
+                          </div>
+                          <button
+                            className="text-sm px-4 py-2 text-white"
+                            style={{
+                              backgroundColor: formData.embedTheme.primaryColor,
+                              borderRadius: `${formData.embedTheme.borderRadius}px`,
+                            }}
+                          >
+                            {formData.embedTheme.buttonText || "Donate Now"}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Embed snippet */}
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Embed snippet (copy after launch):</p>
+                        <code className="block text-xs text-primary font-mono bg-background border border-border rounded p-2 select-all break-all">
+                          {`<iframe src="https://connext.ca/donate/${formData.title ? formData.title.toLowerCase().replace(/\s+/g, "-") : "your-campaign"}?primary=${encodeURIComponent(formData.embedTheme.primaryColor)}&bg=${encodeURIComponent(formData.embedTheme.backgroundColor)}&text=${encodeURIComponent(formData.embedTheme.textColor)}&radius=${formData.embedTheme.borderRadius}&btn=${encodeURIComponent(formData.embedTheme.buttonText)}" width="100%" height="420" frameborder="0" style="border:none;border-radius:${formData.embedTheme.borderRadius}px"></iframe>`}
+                        </code>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Donation Settings */}
             <div className="bg-card border border-border rounded-lg p-6">
               <h3 className="text-xl text-foreground mb-4">Donation Settings</h3>
@@ -366,6 +574,14 @@ export function CampaignBuilder() {
                   </div>
                 </div>
               </div>
+              {formData.campaignWebsite && (
+                <div className="mb-3 flex items-center gap-2 text-sm text-primary">
+                  <Globe className="w-4 h-4" />
+                  <a href={formData.campaignWebsite} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">
+                    {formData.campaignWebsite}
+                  </a>
+                </div>
+              )}
               {formData.campaignMessage && (
                 <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
                   <p className="text-sm text-foreground">{formData.campaignMessage}</p>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { motion } from "motion/react";
-import { Heart, QrCode, Link2, Copy, Check, CreditCard } from "lucide-react";
+import { Heart, QrCode, Link2, Copy, Check, CreditCard, Code2 } from "lucide-react";
 import logo from "../../assets/623260c091783b7a7f316dbc6399aa584ae1e3a2.png";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { ScrollFadeUp, StaggerContainer, HoverCard, AnimatedButton, fadeUp } from "../components/animations";
@@ -19,6 +19,15 @@ export function DonationPortal() {
     collectEmail: true,
     collectName: true,
     collectPhone: false,
+    embedPayment: false,
+    embedTheme: {
+      primaryColor: "#2f6b52",
+      backgroundColor: "#fdfcf8",
+      textColor: "#1f2937",
+      buttonText: "Complete Donation",
+      borderRadius: "8",
+      fontFamily: "inherit",
+    },
   });
 
   const donationUrl = "https://connext.bc.ca/donate/spring-food-drive-2026";
@@ -264,6 +273,193 @@ export function DonationPortal() {
               </HoverCard>
             </ScrollFadeUp>
 
+            {/* Embed on Website */}
+            <ScrollFadeUp delay={0.05}>
+              <HoverCard className="bg-card border border-border rounded-lg overflow-hidden">
+                <div className="p-6">
+                  <h3 className="text-xl text-foreground mb-1 flex items-center gap-2">
+                    <Code2 className="w-5 h-5" />
+                    Embed on Your Website
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">Drop a donation widget directly into your own site — no redirect needed.</p>
+                  <motion.div
+                    whileHover={{ x: 3 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    className="p-4 border border-border rounded-lg cursor-pointer"
+                  >
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.embedPayment}
+                        onChange={(e) => setFormData({ ...formData, embedPayment: e.target.checked })}
+                        className="mt-1 w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
+                      />
+                      <div>
+                        <div className="text-foreground">Enable Embedded Donation Widget</div>
+                        <div className="text-sm text-muted-foreground">Customize colors and style to match your website</div>
+                      </div>
+                    </label>
+                  </motion.div>
+                </div>
+
+                {formData.embedPayment && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="border-t border-border bg-muted/30 p-6 space-y-6"
+                  >
+                    {/* Color pickers */}
+                    <div>
+                      <p className="text-sm text-foreground font-medium mb-3">Widget Colors</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {[
+                          { key: "primaryColor", label: "Button Color" },
+                          { key: "backgroundColor", label: "Background" },
+                          { key: "textColor", label: "Text Color" },
+                        ].map(({ key, label }) => (
+                          <div key={key} className="flex items-center gap-3">
+                            <input
+                              type="color"
+                              value={formData.embedTheme[key as keyof typeof formData.embedTheme]}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  embedTheme: { ...formData.embedTheme, [key]: e.target.value },
+                                })
+                              }
+                              className="w-10 h-10 rounded-lg border border-border cursor-pointer bg-transparent p-0.5"
+                            />
+                            <div>
+                              <div className="text-xs text-muted-foreground">{label}</div>
+                              <div className="text-xs font-mono text-foreground">
+                                {formData.embedTheme[key as keyof typeof formData.embedTheme]}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Style options */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-foreground mb-1">Button Text</label>
+                        <input
+                          type="text"
+                          value={formData.embedTheme.buttonText}
+                          onChange={(e) =>
+                            setFormData({ ...formData, embedTheme: { ...formData.embedTheme, buttonText: e.target.value } })
+                          }
+                          placeholder="Donate Now"
+                          className="w-full px-3 py-2 text-sm bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-foreground mb-1">Corner Radius</label>
+                        <select
+                          value={formData.embedTheme.borderRadius}
+                          onChange={(e) =>
+                            setFormData({ ...formData, embedTheme: { ...formData.embedTheme, borderRadius: e.target.value } })
+                          }
+                          className="w-full px-3 py-2 text-sm bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        >
+                          <option value="0">Sharp (0px)</option>
+                          <option value="4">Subtle (4px)</option>
+                          <option value="8">Rounded (8px)</option>
+                          <option value="12">More Rounded (12px)</option>
+                          <option value="9999">Pill</option>
+                        </select>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block text-sm text-foreground mb-1">Font</label>
+                        <select
+                          value={formData.embedTheme.fontFamily}
+                          onChange={(e) =>
+                            setFormData({ ...formData, embedTheme: { ...formData.embedTheme, fontFamily: e.target.value } })
+                          }
+                          className="w-full px-3 py-2 text-sm bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        >
+                          <option value="inherit">Match your website</option>
+                          <option value="Inter, sans-serif">Inter</option>
+                          <option value="Georgia, serif">Georgia</option>
+                          <option value="'Courier New', monospace">Courier New</option>
+                          <option value="system-ui, sans-serif">System UI</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Live preview */}
+                    <div>
+                      <p className="text-sm text-foreground font-medium mb-2">Live Preview</p>
+                      <div
+                        className="rounded-lg p-4 border border-border"
+                        style={{
+                          backgroundColor: formData.embedTheme.backgroundColor,
+                          fontFamily: formData.embedTheme.fontFamily,
+                          color: formData.embedTheme.textColor,
+                        }}
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <CreditCard className="w-5 h-5" style={{ color: formData.embedTheme.primaryColor }} />
+                          <span className="font-medium">Donate Now</span>
+                        </div>
+                        <div className="space-y-2 mb-3">
+                          {formData.suggestedAmounts.map((amt) => (
+                            <div
+                              key={amt}
+                              className="px-3 py-2 border text-center text-sm cursor-pointer"
+                              style={{
+                                borderColor: `${formData.embedTheme.textColor}22`,
+                                borderRadius: `${formData.embedTheme.borderRadius}px`,
+                              }}
+                            >
+                              ${amt}
+                            </div>
+                          ))}
+                          {formData.customAmount && (
+                            <div
+                              className="px-3 py-2 border text-center text-sm"
+                              style={{
+                                borderColor: `${formData.embedTheme.textColor}22`,
+                                color: `${formData.embedTheme.textColor}88`,
+                                borderRadius: `${formData.embedTheme.borderRadius}px`,
+                              }}
+                            >
+                              Custom Amount
+                            </div>
+                          )}
+                        </div>
+                        {formData.enableMonthly && (
+                          <p className="text-xs text-center mb-3" style={{ color: formData.embedTheme.primaryColor }}>
+                            ✓ Monthly giving available
+                          </p>
+                        )}
+                        <button
+                          className="w-full px-4 py-2 text-sm font-medium text-white"
+                          style={{
+                            backgroundColor: formData.embedTheme.primaryColor,
+                            borderRadius: `${formData.embedTheme.borderRadius}px`,
+                          }}
+                        >
+                          {formData.embedTheme.buttonText || "Donate Now"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Embed snippet */}
+                    <div>
+                      <p className="text-sm text-foreground font-medium mb-1">Your Embed Code</p>
+                      <p className="text-xs text-muted-foreground mb-2">Copy and paste this into your website's HTML</p>
+                      <code className="block text-xs text-primary font-mono bg-background border border-border rounded-lg p-3 select-all break-all leading-relaxed">
+                        {`<iframe src="${donationUrl}?primary=${encodeURIComponent(formData.embedTheme.primaryColor)}&bg=${encodeURIComponent(formData.embedTheme.backgroundColor)}&text=${encodeURIComponent(formData.embedTheme.textColor)}&radius=${formData.embedTheme.borderRadius}&btn=${encodeURIComponent(formData.embedTheme.buttonText)}" width="100%" height="420" frameborder="0" style="border:none;border-radius:${formData.embedTheme.borderRadius}px"></iframe>`}
+                      </code>
+                    </div>
+                  </motion.div>
+                )}
+              </HoverCard>
+            </ScrollFadeUp>
+
             {/* Submit Button */}
             <ScrollFadeUp delay={0.05}>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -286,19 +482,33 @@ export function DonationPortal() {
             <ScrollFadeUp delay={0.15}>
               <HoverCard className="bg-card border border-border rounded-lg p-6">
                 <h4 className="text-foreground mb-3">Donation Page Preview</h4>
-                <div className="border border-border rounded-lg p-4 bg-background">
+                <div
+                  className="border border-border rounded-lg p-4 transition-all duration-300"
+                  style={{
+                    backgroundColor: formData.embedPayment ? formData.embedTheme.backgroundColor : undefined,
+                    fontFamily: formData.embedPayment ? formData.embedTheme.fontFamily : undefined,
+                    color: formData.embedPayment ? formData.embedTheme.textColor : undefined,
+                  }}
+                >
                   <div className="flex items-center gap-2 mb-3">
-                    <CreditCard className="w-5 h-5 text-primary" />
-                    <span className="text-foreground">Donate Now</span>
+                    <CreditCard
+                      className="w-5 h-5"
+                      style={{ color: formData.embedPayment ? formData.embedTheme.primaryColor : "var(--primary)" }}
+                    />
+                    <span>Donate Now</span>
                   </div>
                   <StaggerContainer fast className="space-y-2 mb-4">
                     {formData.suggestedAmounts.map((amount, index) => (
                       <motion.div
                         key={index}
                         variants={fadeUp}
-                        whileHover={{ scale: 1.03, backgroundColor: "var(--primary)", color: "var(--primary-foreground)" }}
+                        whileHover={{ scale: 1.03 }}
                         transition={{ duration: 0.15 }}
-                        className="px-3 py-2 border border-border rounded text-center text-sm cursor-pointer"
+                        className="px-3 py-2 border text-center text-sm cursor-pointer transition-all duration-300"
+                        style={{
+                          borderRadius: formData.embedPayment ? `${formData.embedTheme.borderRadius}px` : undefined,
+                          borderColor: formData.embedPayment ? `${formData.embedTheme.textColor}22` : undefined,
+                        }}
                       >
                         ${amount}
                       </motion.div>
@@ -307,7 +517,12 @@ export function DonationPortal() {
                       <motion.div
                         variants={fadeUp}
                         whileHover={{ scale: 1.03 }}
-                        className="px-3 py-2 border border-border rounded text-center text-sm text-muted-foreground cursor-pointer"
+                        className="px-3 py-2 border text-center text-sm transition-all duration-300"
+                        style={{
+                          borderRadius: formData.embedPayment ? `${formData.embedTheme.borderRadius}px` : undefined,
+                          borderColor: formData.embedPayment ? `${formData.embedTheme.textColor}22` : undefined,
+                          color: formData.embedPayment ? `${formData.embedTheme.textColor}88` : undefined,
+                        }}
                       >
                         Custom Amount
                       </motion.div>
@@ -317,7 +532,8 @@ export function DonationPortal() {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="text-xs text-center text-muted-foreground mb-3"
+                      className="text-xs text-center mb-3 transition-colors duration-300"
+                      style={{ color: formData.embedPayment ? formData.embedTheme.primaryColor : undefined }}
                     >
                       ✓ Monthly giving available
                     </motion.div>
@@ -325,9 +541,14 @@ export function DonationPortal() {
                   <motion.button
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.96 }}
-                    className="w-full px-4 py-2 bg-primary text-primary-foreground rounded text-sm"
+                    className="w-full px-4 py-2 text-sm font-medium transition-all duration-300"
+                    style={{
+                      backgroundColor: formData.embedPayment ? formData.embedTheme.primaryColor : "var(--primary)",
+                      color: "white",
+                      borderRadius: formData.embedPayment ? `${formData.embedTheme.borderRadius}px` : undefined,
+                    }}
                   >
-                    Complete Donation
+                    {formData.embedPayment ? (formData.embedTheme.buttonText || "Donate Now") : "Complete Donation"}
                   </motion.button>
                 </div>
               </HoverCard>
