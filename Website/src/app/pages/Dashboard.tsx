@@ -33,6 +33,7 @@ const BASE_RAISED = 6500;
 const BASE_MONTHLY = 6;
 const BASE_SUPPORTERS = 75;
 
+
 export function Dashboard() {
   const { campaign } = useCampaign();
   const [showPagePreview, setShowPagePreview] = useState(false);
@@ -281,9 +282,10 @@ export function Dashboard() {
             <div className="text-sm text-muted-foreground">
               <span className="text-primary">{pct}%</span> of {campaign.goal ? "$" + Number(campaign.goal).toLocaleString() : "$10,000"} goal
             </div>
-            <div className="mt-3 w-full bg-muted rounded-full h-2">
+            <div className="mt-3 w-full bg-muted rounded-full h-2 relative">
               <motion.div
-                className="bg-primary h-2 rounded-full"
+                className="h-2 rounded-full"
+                style={{ backgroundColor: pct >= 100 ? "#ffe65e" : "var(--primary)" }}
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
               />

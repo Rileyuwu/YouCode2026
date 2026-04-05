@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { Heart, Check, ChevronRight } from "lucide-react";
 import { useCampaign } from "../context/AppContext";
+
+const BASE_RAISED = 6500;
 
 export function DonatePage() {
   const { slug } = useParams<{ slug: string }>();
@@ -12,6 +14,20 @@ export function DonatePage() {
   const [customAmount, setCustomAmount] = useState("");
   const [isMonthly, setIsMonthly] = useState(false);
   const [donated, setDonated] = useState(false);
+  const [liveTotal, setLiveTotal] = useState(0);
+
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const res = await fetch("/api/donations");
+        const data: { amount: number }[] = await res.json();
+        setLiveTotal(data.reduce((sum, d) => sum + d.amount, 0));
+      } catch {}
+    };
+    poll();
+    const interval = setInterval(poll, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const displayTitle = campaign.title || slug || "Support Our Campaign";
   const displayDescription = campaign.description || "Every donation makes a difference.";
@@ -85,21 +101,28 @@ export function DonatePage() {
         </div>
 
         {/* Progress */}
-        <div className="bg-card border border-border rounded-lg p-5">
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-muted-foreground">65% raised</span>
-            <span className="text-foreground">Goal: ${displayGoal}</span>
-          </div>
-          <div className="w-full bg-muted rounded-full h-3">
-            <div
-              className="h-3 rounded-full transition-all"
-              style={{ width: "65%", backgroundColor: accentColor }}
-            />
-          </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            ${(parseFloat(displayGoal.replace(/[^0-9.]/g, "")) * 0.65).toLocaleString(undefined, { maximumFractionDigits: 0 })} raised of ${displayGoal}
-          </p>
-        </div>
+        {(() => {
+          const goalNum = parseFloat(displayGoal.replace(/[^0-9.]/g, "")) || 10000;
+          const totalRaised = BASE_RAISED + liveTotal;
+          const pct = Math.min(Math.round((totalRaised / goalNum) * 100), 100);
+          return (
+            <div className="bg-card border border-border rounded-lg p-5">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-muted-foreground">{pct}% raised</span>
+                <span className="text-foreground">Goal: ${displayGoal}</span>
+              </div>
+              <div className="w-full bg-muted rounded-full h-3">
+                <div
+                  className="h-3 rounded-full transition-all"
+                  style={{ width: `${pct}%`, backgroundColor: pct >= 100 ? "#ffe65e" : accentColor }}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                ${totalRaised.toLocaleString()} raised of ${displayGoal}
+              </p>
+            </div>
+          );
+        })()}
 
         {/* Donation Form */}
         <AnimatePresence mode="wait">
