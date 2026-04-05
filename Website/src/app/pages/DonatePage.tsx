@@ -15,6 +15,8 @@ export function DonatePage() {
   const [isMonthly, setIsMonthly] = useState(false);
   const [donated, setDonated] = useState(false);
   const [liveTotal, setLiveTotal] = useState(0);
+  const [donorName, setDonorName] = useState("");
+  const [donorEmail, setDonorEmail] = useState("");
 
   useEffect(() => {
     const poll = async () => {
@@ -35,22 +37,28 @@ export function DonatePage() {
   const displayAmounts = campaign.suggestedAmounts.length > 0 ? campaign.suggestedAmounts : ["25", "50", "100", "250"];
   const accentColor = campaign.accentColor || "#2f6b52";
 
+  const donateAmount = customAmount || selectedAmount;
+
   const handleDonate = async () => {
-    if (!selectedAmount && !customAmount) return;
+    if (!donateAmount) return;
+    const amount = parseFloat(donateAmount);
+    // Optimistic update — reflect donation immediately without waiting for next poll
+    setLiveTotal((prev) => prev + amount);
+    setDonated(true);
     try {
       await fetch("/api/donate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: parseFloat(donateAmount),
+          amount,
           monthly: isMonthly,
+          name: donorName.trim(),
+          email: donorEmail.trim(),
+          campaignTitle: displayTitle,
         }),
       });
     } catch {}
-    setDonated(true);
   };
-
-  const donateAmount = customAmount || selectedAmount;
 
   return (
     <div className="min-h-screen bg-background">
@@ -194,6 +202,25 @@ export function DonatePage() {
                 </div>
               )}
 
+              {/* Donor Info */}
+              <div className="bg-card border border-border rounded-lg p-5 space-y-3">
+                <h3 className="text-foreground">Your details</h3>
+                <input
+                  type="text"
+                  value={donorName}
+                  onChange={(e) => setDonorName(e.target.value)}
+                  placeholder="Full name"
+                  className="w-full px-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+                />
+                <input
+                  type="email"
+                  value={donorEmail}
+                  onChange={(e) => setDonorEmail(e.target.value)}
+                  placeholder="Email address (optional — for receipt)"
+                  className="w-full px-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+                />
+              </div>
+
               {/* Donate Button */}
               <button
                 onClick={handleDonate}
@@ -215,22 +242,77 @@ export function DonatePage() {
               key="success"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-card border border-border rounded-lg p-8 text-center"
+              className="rounded-lg overflow-hidden border border-border shadow-md"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
-                className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
-                style={{ backgroundColor: `${accentColor}22` }}
+              {/* Email header bar */}
+              <div
+                className="px-6 py-4 flex items-center gap-3"
+                style={{ backgroundColor: accentColor }}
               >
-                <Check className="w-10 h-10" style={{ color: accentColor }} />
-              </motion.div>
-              <h2 className="text-2xl text-foreground mb-2">Thank you for your donation!</h2>
-              <p className="text-muted-foreground mb-1">
-                Your ${donateAmount}{isMonthly ? "/month" : ""} contribution makes a real difference.
-              </p>
-              <p className="text-sm text-muted-foreground">A receipt has been sent to your email.</p>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
+                  className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0"
+                >
+                  <Check className="w-5 h-5 text-white" />
+                </motion.div>
+                <div>
+                  <p className="text-white/70 text-xs uppercase tracking-wide">Donation Receipt</p>
+                  <p className="text-white font-medium">{displayTitle}</p>
+                </div>
+              </div>
+
+              {/* Email body */}
+              <div className="bg-card px-6 py-6 space-y-5">
+                <div>
+                  <h2 className="text-xl text-foreground mb-1">
+                    Thank you{donorName ? `, ${donorName}` : ""}!
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    Your generous contribution has been received.
+                  </p>
+                </div>
+
+                {/* Receipt table */}
+                <div className="border border-border rounded-lg divide-y divide-border text-sm">
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">Campaign</span>
+                    <span className="text-foreground font-medium">{displayTitle}</span>
+                  </div>
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">Amount</span>
+                    <span className="text-foreground font-medium">
+                      ${donateAmount}{isMonthly ? "/month" : ""}
+                    </span>
+                  </div>
+                  <div className="flex justify-between px-4 py-3">
+                    <span className="text-muted-foreground">Type</span>
+                    <span className="text-foreground font-medium">
+                      {isMonthly ? "Monthly Recurring" : "One-Time"}
+                    </span>
+                  </div>
+                  {donorEmail && (
+                    <div className="flex justify-between px-4 py-3">
+                      <span className="text-muted-foreground">Receipt sent to</span>
+                      <span className="font-medium" style={{ color: accentColor }}>{donorEmail}</span>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Your support helps us continue our mission. Every dollar goes directly toward making a lasting impact in the community.
+                </p>
+
+                {/* Footer */}
+                <div className="border-t border-border pt-4 text-xs text-muted-foreground text-center space-y-1">
+                  <p>This is your official donation receipt. Please keep it for your records.</p>
+                  <p>
+                    Powered by{" "}
+                    <span style={{ color: accentColor }} className="font-medium">Connext</span>
+                  </p>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
