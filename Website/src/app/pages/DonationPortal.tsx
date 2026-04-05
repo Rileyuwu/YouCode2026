@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { useCampaign } from "../context/AppContext";
@@ -17,6 +17,23 @@ export function DonationPortal() {
   const [copied, setCopied] = useState(false);
   const [pageMode, setPageMode] = useState<"connext" | "embed" | null>(null);
   const [showQR, setShowQR] = useState(false);
+  const [qrBaseUrl, setQrBaseUrl] = useState(window.location.origin);
+
+  useEffect(() => {
+    let cancelled = false;
+    const poll = () => {
+      fetch("/api/local-ip")
+        .then((r) => r.json())
+        .then(({ url }) => {
+          if (cancelled) return;
+          if (url) { setQrBaseUrl(url); }
+          else { setTimeout(poll, 1500); }
+        })
+        .catch(() => { if (!cancelled) setTimeout(poll, 1500); });
+    };
+    poll();
+    return () => { cancelled = true; };
+  }, []);
   const [emailUpdates, setEmailUpdates] = useState({
     enabled: false,
     frequency: "monthly",
@@ -1051,7 +1068,7 @@ export function DonationPortal() {
               <div className="flex justify-center mb-4">
                 <div id="qr-wrap" className="p-4 bg-white rounded-xl border border-border">
                   <QRCodeSVG
-                    value={donationUrl}
+                    value={`${qrBaseUrl}/donate/${campaign.slug || "your-campaign"}`}
                     size={180}
                     fgColor={pageData.accentColor}
                     level="M"
@@ -1060,7 +1077,9 @@ export function DonationPortal() {
                 </div>
               </div>
 
-              <p className="text-xs text-muted-foreground text-center mb-4 break-all">{donationUrl}</p>
+              <p className="text-xs text-muted-foreground text-center mb-4 break-all">
+                {`${qrBaseUrl}/donate/${campaign.slug || "your-campaign"}`}
+              </p>
 
               <div className="flex gap-3">
                 <motion.button

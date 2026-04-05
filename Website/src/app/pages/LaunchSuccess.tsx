@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { Check, Copy, Download, ExternalLink, ArrowRight } from "lucide-react";
@@ -9,8 +9,25 @@ export function LaunchSuccess() {
   const navigate = useNavigate();
   const { campaign } = useCampaign();
   const [copied, setCopied] = useState(false);
+  const [qrBaseUrl, setQrBaseUrl] = useState(window.location.origin);
 
-  const donationUrl = `${window.location.origin}/donate/${campaign.slug || "your-campaign"}`;
+  useEffect(() => {
+    let cancelled = false;
+    const poll = () => {
+      fetch("/api/local-ip")
+        .then((r) => r.json())
+        .then(({ url }) => {
+          if (cancelled) return;
+          if (url) { setQrBaseUrl(url); }
+          else { setTimeout(poll, 1500); }
+        })
+        .catch(() => { if (!cancelled) setTimeout(poll, 1500); });
+    };
+    poll();
+    return () => { cancelled = true; };
+  }, []);
+
+  const donationUrl = `${qrBaseUrl}/donate/${campaign.slug || "your-campaign"}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(donationUrl);
