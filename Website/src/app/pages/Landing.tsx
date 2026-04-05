@@ -74,7 +74,7 @@ export function Landing() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: "easeOut", delay: 0.1 }}
-            className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-8"
+            className="text-base sm:text-lg text-muted-foreground max-w-5xl mx-auto mb-8 whitespace-nowrap"
           >
             Connecting nonprofits, volunteers, and professional partners to create meaningful change across British Columbia.
           </motion.p>
