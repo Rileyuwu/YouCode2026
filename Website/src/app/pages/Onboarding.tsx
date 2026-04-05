@@ -211,9 +211,13 @@ export function Onboarding() {
                 </label>
                 <input
                   type="text"
+                  inputMode="numeric"
                   value={formData.fundraisingGoal}
-                  onChange={(e) => setFormData({ ...formData, fundraisingGoal: e.target.value })}
-                  placeholder="e.g., $10,000"
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, "");
+                    setFormData({ ...formData, fundraisingGoal: val });
+                  }}
+                  placeholder="e.g., 10000"
                   className="w-full px-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
@@ -245,6 +249,7 @@ export function Onboarding() {
                   className="w-full px-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="">Select a budget range</option>
+                  <option value="free">Free</option>
                   <option value="under1k">Under $1,000</option>
                   <option value="1k-5k">$1,000 - $5,000</option>
                   <option value="5k-10k">$5,000 - $10,000</option>

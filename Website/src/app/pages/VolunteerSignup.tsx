@@ -167,7 +167,7 @@ export function VolunteerSignup() {
               </div>
 
               <div>
-                <label className="block text-foreground mb-2">Languages You Speak</label>
+                <label className="block text-foreground mb-2">Languages You Speak (Select all that apply)</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {["English", "French", "Mandarin", "Cantonese", "Punjabi", "Spanish"].map(
                     (lang) => (

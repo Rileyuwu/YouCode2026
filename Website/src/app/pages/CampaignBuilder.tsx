@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Heart, Home, Calendar, Users, Target, Eye } from "lucide-react";
+import { Home, Calendar, Users, Target, Eye } from "lucide-react";
 import logo from "../../assets/623260c091783b7a7f316dbc6399aa584ae1e3a2.png";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
@@ -106,11 +106,31 @@ export function CampaignBuilder() {
                   <label className="block text-foreground mb-2">
                     Fundraising Target (CAD)
                   </label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {["Free", "$500", "$1,000", "$5,000", "$10,000"].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, fundraisingTarget: preset })}
+                        className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                          formData.fundraisingTarget === preset
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "border-border text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={formData.fundraisingTarget}
-                    onChange={(e) => setFormData({ ...formData, fundraisingTarget: e.target.value })}
-                    placeholder="$10,000"
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, "");
+                      setFormData({ ...formData, fundraisingTarget: val });
+                    }}
+                    placeholder="Or enter a custom amount"
                     className="w-full px-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
