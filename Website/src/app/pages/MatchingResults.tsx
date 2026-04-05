@@ -193,7 +193,10 @@ export function MatchingResults() {
 
                 {/* Actions */}
                 <div className="flex gap-3">
-                  <button className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
+                  <button
+                    onClick={() => navigate("/donation-setup")}
+                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                  >
                     Select This Option
                   </button>
                   <button className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors">

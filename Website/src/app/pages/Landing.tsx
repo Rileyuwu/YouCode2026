@@ -46,14 +46,30 @@ export function Landing() {
       {/* Hero Section */}
       <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 32 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: "easeOut" }}
-            className="text-4xl sm:text-5xl lg:text-6xl text-foreground mb-6"
-          >
-            Turn community support into sustained impact
-          </motion.h1>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl text-foreground mb-6 leading-tight">
+            {["Turn", "community", "support", "into"].map((word, i) => (
+              <motion.span
+                key={word + i}
+                initial={{ opacity: 0, y: 28 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: "easeOut", delay: i * 0.08 }}
+                className="inline-block mr-[0.3em]"
+              >
+                {word}
+              </motion.span>
+            ))}
+            {["sustained", "impact"].map((word, i) => (
+              <motion.span
+                key={word}
+                initial={{ opacity: 0, y: 28, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.55, ease: "easeOut", delay: 0.32 + i * 0.1 }}
+                className="inline-block mr-[0.3em] text-primary"
+              >
+                {word}
+              </motion.span>
+            ))}
+          </h1>
           <motion.p
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,12 +79,7 @@ export function Landing() {
             Connecting nonprofits, volunteers, and professional partners to create meaningful change across British Columbia.
           </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, ease: "easeOut", delay: 0.22 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center mb-4"
-          >
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
             {[
               { to: "/onboarding", icon: Heart, label: "Start a Campaign" },
               { to: "/volunteer/signup", icon: Users, label: "Find Volunteer Opportunities" },
@@ -76,10 +87,11 @@ export function Landing() {
             ].map(({ to, icon: Icon, label }, i) => (
               <motion.div
                 key={label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, ease: "easeOut", delay: 0.22 + i * 0.12 }}
                 whileHover={{ scale: 1.04, y: -2 }}
                 whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 350, damping: 20 }}
-                style={{ transitionDelay: `${i * 0.06}s` }}
               >
                 <Link
                   to={to}
@@ -87,10 +99,16 @@ export function Landing() {
                 >
                   <Icon className="w-5 h-5" />
                   {label}
+                  <motion.span
+                    animate={{ x: [0, 4, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut", delay: i * 0.4 }}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </motion.span>
                 </Link>
               </motion.div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -98,7 +116,8 @@ export function Landing() {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="max-w-4xl mx-auto">
           <ScrollFadeUp className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl text-foreground mb-4">
+            <p className="text-3xl sm:text-4xl text-primary mb-3 font-bold">What is "Connext"?</p>
+            <h2 className="text-lg sm:text-xl text-foreground mb-4 whitespace-nowrap">
               You have community support. But turning it into action is hard.
             </h2>
             <p className="text-lg text-muted-foreground">
