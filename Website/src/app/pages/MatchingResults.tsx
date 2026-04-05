@@ -53,6 +53,7 @@ export function MatchingResults() {
   const navigate = useNavigate();
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string>("all");
 
   const matches = [
     {
@@ -151,23 +152,30 @@ export function MatchingResults() {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-6">
-          <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg">
-            All Matches
-          </button>
-          <button className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors">
-            Volunteers
-          </button>
-          <button className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors">
-            Student Groups
-          </button>
-          <button className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors">
-            Professional Firms
-          </button>
+          {[
+            { label: "All Matches", value: "all" },
+            { label: "Volunteers", value: "volunteers" },
+            { label: "Student Groups", value: "students" },
+            { label: "Professional Firms", value: "professional" },
+            { label: "Community Orgs", value: "community" },
+          ].map(({ label, value }) => (
+            <button
+              key={value}
+              onClick={() => setActiveFilter(value)}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                activeFilter === value
+                  ? "bg-primary text-primary-foreground"
+                  : "border border-border text-foreground hover:bg-muted"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Matches Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {matches.map((match) => {
+          {matches.filter((m) => activeFilter === "all" || m.type === activeFilter).map((match) => {
             const Icon = match.icon;
             const isExpanded = expandedId === match.id;
             const isSelected = selectedIds.includes(match.id);
