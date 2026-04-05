@@ -45,6 +45,13 @@ interface SlackChannel extends Channel {
 }
 
 export function AlertChannels() {
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
   const [email, setEmail] = useState<EmailChannel>({
     enabled: false,
     expanded: false,
@@ -265,10 +272,20 @@ export function AlertChannels() {
         </div>
 
         {/* Save */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-8 flex gap-3">
-          <button className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
-            Save Alert Settings
-          </button>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-8 flex gap-3 items-center">
+          <motion.button
+            onClick={handleSave}
+            whileTap={{ scale: 0.97 }}
+            className={`flex-1 px-6 py-3 rounded-lg transition-all flex items-center justify-center gap-2 ${saved ? "bg-green-600 text-white" : "bg-primary text-primary-foreground hover:opacity-90"}`}
+          >
+            {saved ? (
+              <>
+                <Check className="w-4 h-4" /> Saved!
+              </>
+            ) : (
+              "Save Alert Settings"
+            )}
+          </motion.button>
           <Link to="/dashboard" className="px-6 py-3 border border-border text-foreground rounded-lg hover:bg-muted transition-colors">
             Cancel
           </Link>

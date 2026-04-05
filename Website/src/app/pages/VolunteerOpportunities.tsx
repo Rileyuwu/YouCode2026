@@ -1,15 +1,35 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Heart, MapPin, Clock, Calendar, Users, Star, Filter, Search } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { MapPin, Clock, Calendar, Users, Star, Search, X, Check } from "lucide-react";
 import logo from "../../assets/623260c091783b7a7f316dbc6399aa584ae1e3a2.png";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+
+type Opportunity = {
+  id: number;
+  title: string;
+  organization: string;
+  location: string;
+  timeCommitment: string;
+  duration: string;
+  skills: string[];
+  causes: string[];
+  volunteers: number;
+  spots: number;
+  match: number;
+  description: string;
+};
 
 export function VolunteerOpportunities() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [applyTarget, setApplyTarget] = useState<Opportunity | null>(null);
+  const [detailTarget, setDetailTarget] = useState<Opportunity | null>(null);
+  const [applyForm, setApplyForm] = useState({ message: "", availability: "", backgroundCheck: false });
+  const [submitted, setSubmitted] = useState(false);
 
-  const opportunities = [
+  const opportunities: Opportunity[] = [
     {
       id: 1,
       title: "Spring Food Drive Outreach",
@@ -97,6 +117,16 @@ export function VolunteerOpportunities() {
     return matchesSearch && matchesFilter;
   });
 
+  const handleSubmitApplication = () => {
+    setSubmitted(true);
+    setTimeout(() => {
+      setApplyTarget(null);
+      setSubmitted(false);
+      setApplyForm({ message: "", availability: "", backgroundCheck: false });
+      navigate("/volunteer/dashboard");
+    }, 1500);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -117,7 +147,6 @@ export function VolunteerOpportunities() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl text-foreground mb-2">
             Find Your Perfect Volunteer Opportunity
@@ -140,53 +169,36 @@ export function VolunteerOpportunities() {
                 className="w-full pl-10 pr-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
-            <div className="flex gap-3">
-              <button className="flex items-center gap-2 px-4 py-3 border border-border rounded-lg hover:bg-muted transition-colors">
-                <Filter className="w-5 h-5" />
-                <span className="hidden sm:inline">Filters</span>
-              </button>
-            </div>
           </div>
 
           <div className="flex flex-wrap gap-2 mt-4">
-            <button
-              onClick={() => setSelectedFilter("all")}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                selectedFilter === "all"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-foreground hover:bg-muted/80"
-              }`}
-            >
-              All Opportunities
-            </button>
-            <button
-              onClick={() => setSelectedFilter("ongoing")}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                selectedFilter === "ongoing"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-foreground hover:bg-muted/80"
-              }`}
-            >
-              Ongoing
-            </button>
-            <button
-              onClick={() => setSelectedFilter("one-time")}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                selectedFilter === "one-time"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-foreground hover:bg-muted/80"
-              }`}
-            >
-              One-Time Events
-            </button>
+            {[
+              { value: "all", label: "All Opportunities" },
+              { value: "ongoing", label: "Ongoing" },
+              { value: "one-time", label: "One-Time Events" },
+            ].map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => setSelectedFilter(value)}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  selectedFilter === value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground hover:bg-muted/80"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
         {/* Opportunities List */}
         <div className="space-y-4">
           {filteredOpportunities.map((opp) => (
-            <div
+            <motion.div
               key={opp.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
               className="bg-card border border-border rounded-lg p-6 hover:border-primary/50 transition-colors"
             >
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -219,56 +231,44 @@ export function VolunteerOpportunities() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Users className="w-4 h-4" />
-                      <span>
-                        {opp.volunteers}/{opp.spots} volunteers
-                      </span>
+                      <span>{opp.volunteers}/{opp.spots} volunteers</span>
                     </div>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
                     {opp.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="px-3 py-1 bg-muted text-foreground text-sm rounded-full"
-                      >
-                        {skill}
-                      </span>
+                      <span key={skill} className="px-3 py-1 bg-muted text-foreground text-sm rounded-full">{skill}</span>
                     ))}
                     {opp.causes.map((cause) => (
-                      <span
-                        key={cause}
-                        className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full"
-                      >
-                        {cause}
-                      </span>
+                      <span key={cause} className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full">{cause}</span>
                     ))}
                   </div>
                 </div>
 
                 <div className="flex lg:flex-col gap-2 lg:w-40">
-                  <button className="flex-1 lg:w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
+                  <button
+                    onClick={() => setApplyTarget(opp)}
+                    className="flex-1 lg:w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                  >
                     Apply Now
                   </button>
-                  <button className="flex-1 lg:w-full px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors">
+                  <button
+                    onClick={() => setDetailTarget(opp)}
+                    className="flex-1 lg:w-full px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors"
+                  >
                     Learn More
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
-        {/* No Results */}
         {filteredOpportunities.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">
-              No opportunities match your search. Try adjusting your filters.
-            </p>
+            <p className="text-muted-foreground mb-4">No opportunities match your search. Try adjusting your filters.</p>
             <button
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedFilter("all");
-              }}
+              onClick={() => { setSearchTerm(""); setSelectedFilter("all"); }}
               className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
             >
               Clear Filters
@@ -276,21 +276,189 @@ export function VolunteerOpportunities() {
           </div>
         )}
 
-        {/* Call to Action */}
         <div className="mt-8 bg-muted/30 border border-border rounded-lg p-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-foreground mb-1">Can't find what you're looking for?</h3>
-              <p className="text-sm text-muted-foreground">
-                Set up alerts to be notified when new opportunities that match your interests are posted.
-              </p>
+              <p className="text-sm text-muted-foreground">Browse more opportunities or check back later for new listings.</p>
             </div>
-            <button className="px-6 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors whitespace-nowrap">
-              Set Up Alerts
-            </button>
+            <Link to="/volunteer/dashboard" className="px-6 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors whitespace-nowrap">
+              My Dashboard
+            </Link>
           </div>
         </div>
       </div>
+
+      {/* Apply Modal */}
+      <AnimatePresence>
+        {applyTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => !submitted && setApplyTarget(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card border border-border rounded-xl p-6 shadow-xl max-w-lg w-full"
+            >
+              {submitted ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-6"
+                >
+                  <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-7 h-7 text-primary" />
+                  </div>
+                  <h3 className="text-xl text-foreground mb-2">Application Submitted!</h3>
+                  <p className="text-muted-foreground">Redirecting to your dashboard…</p>
+                </motion.div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <h3 className="text-xl text-foreground">Apply to Volunteer</h3>
+                      <p className="text-sm text-muted-foreground mt-0.5">{applyTarget.title} · {applyTarget.organization}</p>
+                    </div>
+                    <button onClick={() => setApplyTarget(null)} className="p-1.5 hover:bg-muted rounded-lg transition-colors">
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-foreground mb-2">Why do you want to volunteer here?</label>
+                      <textarea
+                        value={applyForm.message}
+                        onChange={(e) => setApplyForm({ ...applyForm, message: e.target.value })}
+                        placeholder="Share a little about yourself and why this opportunity interests you..."
+                        rows={4}
+                        className="w-full px-3 py-2 text-sm bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm text-foreground mb-2">Your availability</label>
+                      <select
+                        value={applyForm.availability}
+                        onChange={(e) => setApplyForm({ ...applyForm, availability: e.target.value })}
+                        className="w-full px-3 py-2 text-sm bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="">Select when you're available</option>
+                        <option>Weekday mornings</option>
+                        <option>Weekday afternoons</option>
+                        <option>Weekday evenings</option>
+                        <option>Weekends</option>
+                        <option>Flexible</option>
+                      </select>
+                    </div>
+
+                    <div className="p-3 border border-border rounded-lg">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={applyForm.backgroundCheck}
+                          onChange={(e) => setApplyForm({ ...applyForm, backgroundCheck: e.target.checked })}
+                          className="w-4 h-4 text-primary border-border rounded"
+                        />
+                        <span className="text-sm text-foreground">I have or am willing to obtain a background check</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={handleSubmitApplication}
+                      className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                    >
+                      Submit Application
+                    </button>
+                    <button
+                      onClick={() => setApplyTarget(null)}
+                      className="px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Learn More Modal */}
+      <AnimatePresence>
+        {detailTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setDetailTarget(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card border border-border rounded-xl p-6 shadow-xl max-w-lg w-full"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-xl text-foreground">{detailTarget.title}</h3>
+                  <p className="text-sm text-muted-foreground mt-0.5">{detailTarget.organization}</p>
+                </div>
+                <button onClick={() => setDetailTarget(null)} className="p-1.5 hover:bg-muted rounded-lg transition-colors">
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+
+              <p className="text-foreground mb-4">{detailTarget.description}</p>
+
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {[
+                  { icon: MapPin, label: "Location", value: detailTarget.location },
+                  { icon: Clock, label: "Time", value: detailTarget.timeCommitment },
+                  { icon: Calendar, label: "Duration", value: detailTarget.duration },
+                  { icon: Users, label: "Spots left", value: `${detailTarget.spots - detailTarget.volunteers} remaining` },
+                ].map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="p-3 bg-muted/40 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Icon className="w-4 h-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">{label}</span>
+                    </div>
+                    <span className="text-sm text-foreground">{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-5">
+                <p className="text-sm text-muted-foreground mb-2">Skills needed</p>
+                <div className="flex flex-wrap gap-2">
+                  {detailTarget.skills.map((s) => (
+                    <span key={s} className="px-3 py-1 bg-muted text-foreground text-sm rounded-full">{s}</span>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() => { setDetailTarget(null); setApplyTarget(detailTarget); }}
+                className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Apply Now
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
