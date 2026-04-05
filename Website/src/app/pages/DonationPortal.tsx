@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
+import { useCampaign } from "../context/AppContext";
 import {
   QrCode, Link2, Copy, Check, CreditCard, Code2, RefreshCw, Zap,
   ShieldCheck, Star, Globe, ImagePlus, Type, Palette, Upload, X, Download, Mail, Bell, ChevronDown
@@ -12,9 +13,27 @@ import { ScrollFadeUp, StaggerContainer, HoverCard, AnimatedButton, fadeUp } fro
 
 export function DonationPortal() {
   const navigate = useNavigate();
+  const { campaign, updateCampaign } = useCampaign();
   const [copied, setCopied] = useState(false);
   const [pageMode, setPageMode] = useState<"connext" | "embed" | null>(null);
   const [showQR, setShowQR] = useState(false);
+  const [qrBaseUrl, setQrBaseUrl] = useState(window.location.origin);
+
+  useEffect(() => {
+    let cancelled = false;
+    const poll = () => {
+      fetch("/api/local-ip")
+        .then((r) => r.json())
+        .then(({ url }) => {
+          if (cancelled) return;
+          if (url) { setQrBaseUrl(url); }
+          else { setTimeout(poll, 1500); }
+        })
+        .catch(() => { if (!cancelled) setTimeout(poll, 1500); });
+    };
+    poll();
+    return () => { cancelled = true; };
+  }, []);
   const [emailUpdates, setEmailUpdates] = useState({
     enabled: false,
     frequency: "monthly",
@@ -26,11 +45,11 @@ export function DonationPortal() {
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const [pageData, setPageData] = useState({
-    title: "Spring Food Drive 2026",
-    description: "Help us provide healthy meals to families across the Lower Mainland. Every dollar goes directly to food purchasing and distribution.",
-    heroImage: null as string | null,
-    logoImage: null as string | null,
-    accentColor: "#2f6b52",
+    title: campaign.title || "Spring Food Drive 2026",
+    description: campaign.description || "Help us provide healthy meals to families across the Lower Mainland. Every dollar goes directly to food purchasing and distribution.",
+    heroImage: campaign.heroImage as string | null,
+    logoImage: campaign.logoImage as string | null,
+    accentColor: campaign.accentColor || "#2f6b52",
   });
 
   const [formData, setFormData] = useState({
@@ -52,7 +71,7 @@ export function DonationPortal() {
     },
   });
 
-  const donationUrl = "https://connext.bc.ca/donate/spring-food-drive-2026";
+  const donationUrl = `${window.location.origin}/donate/${campaign.slug || "your-campaign"}`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(donationUrl);
@@ -613,7 +632,7 @@ export function DonationPortal() {
                   {/* Actions */}
                   <ScrollFadeUp delay={0.05}>
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <AnimatedButton onClick={() => navigate("/dashboard")} className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
+                      <AnimatedButton onClick={() => { updateCampaign({ launched: true, heroImage: pageData.heroImage, logoImage: pageData.logoImage, accentColor: pageData.accentColor, title: pageData.title, description: pageData.description }); navigate("/launch-success"); }} className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
                         Launch Campaign
                       </AnimatedButton>
                       <AnimatedButton className="px-6 py-3 border border-border text-foreground rounded-lg hover:bg-muted transition-colors">
@@ -1049,7 +1068,7 @@ export function DonationPortal() {
               <div className="flex justify-center mb-4">
                 <div id="qr-wrap" className="p-4 bg-white rounded-xl border border-border">
                   <QRCodeSVG
-                    value={donationUrl}
+                    value={`${qrBaseUrl}/donate/${campaign.slug || "your-campaign"}`}
                     size={180}
                     fgColor={pageData.accentColor}
                     level="M"
@@ -1058,7 +1077,9 @@ export function DonationPortal() {
                 </div>
               </div>
 
-              <p className="text-xs text-muted-foreground text-center mb-4 break-all">{donationUrl}</p>
+              <p className="text-xs text-muted-foreground text-center mb-4 break-all">
+                {`${qrBaseUrl}/donate/${campaign.slug || "your-campaign"}`}
+              </p>
 
               <div className="flex gap-3">
                 <motion.button

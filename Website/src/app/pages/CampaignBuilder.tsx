@@ -3,12 +3,15 @@ import { Link, useNavigate } from "react-router";
 import { Home, Calendar, Users, Target, Eye } from "lucide-react";
 import logo from "../../assets/623260c091783b7a7f316dbc6399aa584ae1e3a2.png";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { useCampaign } from "../context/AppContext";
 
 export function CampaignBuilder() {
   const navigate = useNavigate();
+  const { updateCampaign } = useCampaign();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    website: "",
     fundraisingTarget: "",
     supportType: "volunteers",
     targetAudience: "",
@@ -22,6 +25,15 @@ export function CampaignBuilder() {
   const [showPreview, setShowPreview] = useState(false);
 
   const handleSubmit = () => {
+    updateCampaign({
+      title: formData.title,
+      description: formData.description,
+      website: formData.website,
+      goal: formData.fundraisingTarget,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      slug: formData.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "my-campaign",
+    });
     navigate("/campaign/matches");
   };
 
@@ -90,6 +102,19 @@ export function CampaignBuilder() {
                   <p className="text-sm text-muted-foreground mt-1">
                     Keep it clear and heartfelt. This will appear on your donation page.
                   </p>
+                </div>
+
+                <div>
+                  <label className="block text-foreground mb-2">
+                    Organization Website
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://yourorg.org"
+                    className="w-full px-4 py-3 bg-input-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
                 </div>
               </div>
             </div>
