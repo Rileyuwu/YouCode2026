@@ -6,12 +6,16 @@ import { MatchingResults } from "./pages/MatchingResults";
 import { DonationPortal } from "./pages/DonationPortal";
 import { Dashboard } from "./pages/Dashboard";
 import { TrustSafety } from "./pages/TrustSafety";
+import { AlertChannels } from "./pages/AlertChannels";
 import { VolunteerSignup } from "./pages/VolunteerSignup";
 import { VolunteerOpportunities } from "./pages/VolunteerOpportunities";
 import { VolunteerDashboard } from "./pages/VolunteerDashboard";
 import { FirmSignup } from "./pages/FirmSignup";
 import { FirmOpportunities } from "./pages/FirmOpportunities";
 import { FirmDashboard } from "./pages/FirmDashboard";
+import { DonatePage } from "./pages/DonatePage";
+import { LaunchSuccess } from "./pages/LaunchSuccess";
+import { NotFound } from "./pages/NotFound";
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +47,10 @@ export const router = createBrowserRouter([
     path: "/trust-safety",
     Component: TrustSafety,
   },
+  {
+    path: "/alerts",
+    Component: AlertChannels,
+  },
   // Volunteer routes
   {
     path: "/volunteer/signup",
@@ -68,5 +76,17 @@ export const router = createBrowserRouter([
   {
     path: "/firm/dashboard",
     Component: FirmDashboard,
+  },
+  {
+    path: "/donate/:slug",
+    Component: DonatePage,
+  },
+  {
+    path: "/launch-success",
+    Component: LaunchSuccess,
+  },
+  {
+    path: "*",
+    Component: NotFound,
   },
 ]);

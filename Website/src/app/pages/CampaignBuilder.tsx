@@ -3,9 +3,11 @@ import { Link, useNavigate } from "react-router";
 import { Home, Calendar, Users, Target, Eye } from "lucide-react";
 import logo from "../../assets/623260c091783b7a7f316dbc6399aa584ae1e3a2.png";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { useCampaign } from "../context/AppContext";
 
 export function CampaignBuilder() {
   const navigate = useNavigate();
+  const { updateCampaign } = useCampaign();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -22,6 +24,14 @@ export function CampaignBuilder() {
   const [showPreview, setShowPreview] = useState(false);
 
   const handleSubmit = () => {
+    updateCampaign({
+      title: formData.title,
+      description: formData.description,
+      goal: formData.fundraisingTarget,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      slug: formData.title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") || "my-campaign",
+    });
     navigate("/campaign/matches");
   };
 

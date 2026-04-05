@@ -90,7 +90,7 @@ export function Onboarding() {
             <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
           </div>
           <div className="w-full bg-muted rounded-full h-2">
-            <div
+            <div1
               className="bg-primary h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />

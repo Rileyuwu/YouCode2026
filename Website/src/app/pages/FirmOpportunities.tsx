@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { Heart, DollarSign, Calendar, MapPin, Building2, TrendingUp, Filter, Search } from "lucide-react";
+import { Heart, DollarSign, Calendar, MapPin, Building2, TrendingUp, Filter, Search, X, FileText, Users, BarChart2 } from "lucide-react";
 import logo from "../../assets/623260c091783b7a7f316dbc6399aa584ae1e3a2.png";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import { motion, AnimatePresence } from "motion/react";
 
 export function FirmOpportunities() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [showGuide, setShowGuide] = useState(false);
 
   const campaigns = [
     {
@@ -276,12 +278,93 @@ export function FirmOpportunities() {
                 Learn how to write successful proposals and stand out to nonprofits.
               </p>
             </div>
-            <button className="px-6 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors whitespace-nowrap">
+            <button
+              onClick={() => setShowGuide(true)}
+              className="px-6 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors whitespace-nowrap"
+            >
               View Guide
             </button>
           </div>
         </div>
       </div>
+
+      {/* View Guide Modal */}
+      <AnimatePresence>
+        {showGuide && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowGuide(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-card border border-border rounded-xl p-6 shadow-xl max-w-lg w-full"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl text-foreground">How It Works</h3>
+                <button onClick={() => setShowGuide(false)} className="p-1.5 hover:bg-muted rounded-lg transition-colors">
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+
+              <div className="space-y-5">
+                {[
+                  {
+                    num: 1,
+                    icon: Search,
+                    heading: "Browse Open Campaigns",
+                    desc: "Explore nonprofit campaigns that match your firm's expertise and availability.",
+                  },
+                  {
+                    num: 2,
+                    icon: FileText,
+                    heading: "Write a Strong Proposal",
+                    desc: "Highlight your relevant experience, team size, and what makes your firm the right fit.",
+                  },
+                  {
+                    num: 3,
+                    icon: Users,
+                    heading: "Get Matched & Onboarded",
+                    desc: "Once selected, you'll receive a detailed brief and be connected with the nonprofit's campaign lead.",
+                  },
+                  {
+                    num: 4,
+                    icon: BarChart2,
+                    heading: "Track Your Impact",
+                    desc: "Log volunteer hours, submit progress updates, and see your cumulative social impact score.",
+                  },
+                ].map(({ num, icon: Icon, heading, desc }) => (
+                  <div key={num} className="flex items-start gap-4">
+                    <div className="flex-shrink-0 flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary font-medium text-sm">
+                      {num}
+                    </div>
+                    <div className="flex items-start gap-3 flex-1">
+                      <Icon className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                      <div>
+                        <div className="text-foreground font-medium mb-1">{heading}</div>
+                        <p className="text-sm text-muted-foreground">{desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setShowGuide(false)}
+                className="w-full mt-6 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Got it
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
