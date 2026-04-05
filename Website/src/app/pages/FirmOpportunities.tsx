@@ -119,12 +119,12 @@ export function FirmOpportunities() {
 
   const handleSubmitProposal = () => {
     setSubmitted(true);
-    setTimeout(() => {
-      setProposalTarget(null);
-      setSubmitted(false);
-      setProposalForm({ coverLetter: "", proposedBudget: "", proposedTimeline: "", teamSize: "", approach: "" });
-      navigate("/firm/dashboard");
-    }, 1500);
+  };
+
+  const closeProposalModal = () => {
+    setProposalTarget(null);
+    setSubmitted(false);
+    setProposalForm({ coverLetter: "", proposedBudget: "", proposedTimeline: "", teamSize: "", approach: "" });
   };
 
   return (
@@ -311,13 +311,21 @@ export function FirmOpportunities() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-12 px-6"
+                  className="text-center py-8 px-6"
                 >
                   <div className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Check className="w-7 h-7 text-primary" />
                   </div>
                   <h3 className="text-xl text-foreground mb-2">Proposal Submitted!</h3>
-                  <p className="text-muted-foreground">Redirecting to your dashboard…</p>
+                  <p className="text-muted-foreground mb-6">The nonprofit will review your proposal within 3–5 business days.</p>
+                  <div className="flex flex-col gap-2">
+                    <button onClick={() => navigate("/firm/dashboard")} className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
+                      Go to My Dashboard
+                    </button>
+                    <button onClick={closeProposalModal} className="w-full px-4 py-2 border border-border text-foreground rounded-lg hover:bg-muted transition-colors">
+                      Browse More Campaigns
+                    </button>
+                  </div>
                 </motion.div>
               ) : (
                 <div className="p-6">
